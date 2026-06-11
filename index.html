@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distributor Manager — Domo Sports Grass</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#F4F6FA;color:#1a1a1a}
+.topbar{background:#0D2B55;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.brand{color:#fff;font-size:15px;font-weight:600}
+.brand span{color:#7BAED6;font-size:12px;font-weight:400;margin-left:6px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:8px;border:none;cursor:pointer}
+.btn-primary{background:#1D9E75;color:#fff}
+.btn-outline{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.main{max-width:1100px;margin:0 auto;padding:20px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #DDE3EC}
+.kpi-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.kpi-val{font-size:28px;font-weight:700;color:#0D2B55}
+.kpi-val.g{color:#1D9E75}.kpi-val.b{color:#185FA5}.kpi-val.a{color:#BA7517}
+.panel{background:#fff;border:2px solid #1D9E75;border-radius:12px;padding:20px 24px;margin-bottom:20px;display:none}
+.panel.open{display:block}
+.panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.panel-hdr h3{font-size:15px;font-weight:600;color:#0D2B55}
+.close-btn{background:none;border:none;cursor:pointer;font-size:22px;color:#aaa;line-height:1}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.field input,.field select,.field textarea{width:100%;padding:8px 10px;font-size:13px;border:1px solid #DDE3EC;border-radius:8px;background:#fff;color:#1a1a1a;font-family:inherit}
+.field textarea{height:60px;resize:vertical}
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pill{font-size:12px;color:#555;cursor:pointer;padding:5px 12px;border-radius:20px;border:1px solid #DDE3EC;background:#fff;user-select:none}
+.pill.on{background:#E1F5EE;border-color:#1D9E75;color:#085041;font-weight:600}
+.form-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid #F0F0F0}
+.btn-cancel{padding:7px 16px;font-size:13px;border-radius:8px;border:1px solid #DDE3EC;background:#fff;color:#666;cursor:pointer}
+.tabs{display:flex;border-bottom:2px solid #DDE3EC;margin-bottom:16px}
+.tab{padding:9px 18px;font-size:13px;font-weight:500;color:#888;cursor:pointer;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;background:none;font-family:inherit}
+.tab.active{color:#0D2B55;border-bottom-color:#0D2B55}
+.sec{display:none}.sec.active{display:block}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.toolbar input,.toolbar select{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid #DDE3EC;background:#fff;color:#1a1a1a;height:34px;font-family:inherit}
+.toolbar input{flex:1;min-width:160px}
+.tbl-wrap{background:#fff;border-radius:10px;border:1px solid #DDE3EC;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead tr{background:#0D2B55}
+th{padding:10px;text-align:left;font-size:10px;font-weight:600;color:#90BAD9;text-transform:uppercase;letter-spacing:.06em}
+td{padding:9px 10px;border-bottom:1px solid #F0F2F5;color:#444;vertical-align:middle}
+td.nm{font-weight:600;color:#0D2B55}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFBFF}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
+.ba{background:#E1F5EE;color:#085041}.bp{background:#E6F1FB;color:#0C447C}
+.bi{background:#F1EFE8;color:#444}.bn{background:#FCEBEB;color:#791F1F}
+.ctag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:6px;background:#F4F6FA;color:#555;margin:1px;border:1px solid #E8E8E8}
+.abt{background:none;border:none;cursor:pointer;color:#bbb;padding:3px 5px;border-radius:5px;font-size:15px}
+.abt:hover{color:#0D2B55;background:#F4F6FA}
+.empty td{text-align:center;padding:3rem;color:#aaa;font-size:13px}
+#gmap{width:100%;height:500px;border-radius:10px;border:1px solid #DDE3EC}
+.leg-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}
+.leg{display:flex;align-items:center;gap:5px;font-size:12px;color:#666}
+.ldot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sync-bar{background:#E6F1FB;border-radius:8px;padding:8px 14px;font-size:12px;color:#0C447C;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.toast{position:fixed;bottom:24px;right:24px;background:#0D2B55;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.show{opacity:1}
+@media(max-width:680px){.kpi-row,.g2,.g3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Distributor Manager<span>· Domo Sports Grass · South America</span></div>
+  <div class="topbar-actions">
+    <button class="btn btn-outline btn-sm" onclick="exportCSV()">↓ Export CSV</button>
+    <label class="btn btn-outline btn-sm" style="cursor:pointer">↑ Import CSV<input type="file" accept=".csv" style="display:none" onchange="importCSV(event)"></label>
+    <button class="btn btn-primary btn-sm" onclick="openPanel()">+ Add distributor</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sync-bar">
+    <span id="sync-status">⟳ Loading data from Google Sheets...</span>
+    <button class="btn btn-sm" style="background:#185FA5;color:#fff;border:none" onclick="loadFromSheets()">↻ Refresh</button>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-lbl">Total</div><div class="kpi-val" id="kt">—</div></div>
+    <div class="kpi"><div class="kpi-lbl">Active</div><div class="kpi-val g" id="ka">—</div></div>
+    <div class="kpi"><div class="kpi-lbl">Potential</div><div class="kpi-val b" id="kp">—</div></div>
+    <div class="kpi"><div class="kpi-lbl">Countries</div><div class="kpi-val a" id="kc">—</div></div>
+  </div>
+
+  <div class="panel" id="panel">
+    <div class="panel-hdr">
+      <h3 id="panel-title">Add distributor</h3>
+      <button class="close-btn" onclick="closePanel()">✕</button>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Name *</label><input id="d-name" placeholder="Company name"></div>
+      <div class="field"><label>Status *</label>
+        <select id="d-status"><option>Active</option><option>Potential</option><option>Inactive</option><option>Not Interested</option></select>
+      </div>
+    </div>
+    <div class="g3">
+      <div class="field"><label>Country *</label>
+        <select id="d-country">
+          <option value="">Select...</option>
+          <option>Argentina</option><option>Bolivia</option><option>Brazil</option><option>Chile</option>
+          <option>Colombia</option><option>Ecuador</option><option>Paraguay</option><option>Peru</option>
+          <option>Uruguay</option><option>Venezuela</option><option>Mexico</option><option>Costa Rica</option>
+          <option>Guatemala</option><option>Panama</option><option>Dominican Republic</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>City</label><input id="d-city" placeholder="City"></div>
+      <div class="field"><label>Phone</label><input id="d-phone" placeholder="+1 234 567 890"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Contact</label><input id="d-contact" placeholder="Full name"></div>
+      <div class="field"><label>Email</label><input id="d-email" type="email" placeholder="email@company.com"></div>
+    </div>
+    <div class="field"><label>Categories</label>
+      <div class="cats" id="d-cats">
+        <span class="pill" onclick="this.classList.toggle('on')" data-v="Football">Football</span>
+        <span class="pill" onclick="this.classList.toggle('on')" data-v="Padel">Padel</span>
+        <span class="pill" onclick="this.classList.toggle('on')" data-v="Tennis">Tennis</span>
+        <span class="pill" onclick="this.classList.toggle('on')" data-v="Hockey">Hockey</span>
+        <span class="pill" onclick="this.classList.toggle('on')" data-v="Landscaping">Landscaping</span>
+        <span class="pill" onclick="this.classList.toggle('on')" data-v="Rugby">Rugby</span>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="d-notes" placeholder="Additional notes..."></textarea></div>
+    <div class="form-footer">
+      <button class="btn-cancel" onclick="closePanel()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDist()">✓ Save distributor</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('list',this)">☰ Distributors</button>
+    <button class="tab" onclick="switchTab('map',this)">◉ Map</button>
+  </div>
+
+  <div id="sec-list" class="sec active">
+    <div class="toolbar">
+      <input id="fs" placeholder="Search name, city, country..." oninput="renderTable()">
+      <select id="fst" onchange="renderTable()"><option value="">All statuses</option><option>Active</option><option>Potential</option><option>Inactive</option><option>Not Interested</option></select>
+      <select id="fco" onchange="renderTable()"><option value="">All countries</option></select>
+      <select id="fca" onchange="renderTable()"><option value="">All categories</option><option>Football</option><option>Padel</option><option>Tennis</option><option>Hockey</option><option>Landscaping</option><option>Rugby</option></select>
+    </div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>#</th><th>Name</th><th>Country</th><th>Categories</th><th>Contact</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+      <tbody id="tbody"></tbody></table>
+    </div>
+  </div>
+
+  <div id="sec-map" class="sec">
+    <div id="gmap"></div>
+    <div class="leg-row">
+      <span class="leg"><span class="ldot" style="background:#1D9E75"></span>Active</span>
+      <span class="leg"><span class="ldot" style="background:#378ADD"></span>Potential</span>
+      <span class="leg"><span class="ldot" style="background:#888"></span>Inactive</span>
+      <span class="leg"><span class="ldot" style="background:#E24B4A"></span>Not Interested</span>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=12635634&single=true&output=csv';
+var AS_URL  = 'https://script.google.com/macros/s/AKfycbxGvZ71zzLjJwtTW3vvi9uzqXoGkHwvEiLLLQaierS7jSf-rgHo3nhnWmda5NA8Z8t9/exec';
+var MAPS_KEY = 'AIzaSyC7AiJAv74JYdta27PYAI4pHZItoodgN8M';
+var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1mn_3sd6YAXr0vv1VfzXfFiZmgw1ieSiWMUl63q7qt7w';
+
+var D = [], eD = -1, map = null, markers = [], infoWin = null;
+var SC = {Active:'ba',Potential:'bp',Inactive:'bi','Not Interested':'bn'};
+var MC = {Active:'#1D9E75',Potential:'#378ADD',Inactive:'#888','Not Interested':'#E24B4A'};
+var COORDS = {
+  Argentina:{lat:-34.6,lng:-58.4}, Bolivia:{lat:-16.5,lng:-68.1},
+  Brazil:{lat:-15.8,lng:-47.9},    Chile:{lat:-33.4,lng:-70.6},
+  Colombia:{lat:4.7,lng:-74.1},    Ecuador:{lat:-0.2,lng:-78.5},
+  Paraguay:{lat:-25.3,lng:-57.6},  Peru:{lat:-12.0,lng:-77.0},
+  Uruguay:{lat:-34.9,lng:-56.2},   Venezuela:{lat:10.5,lng:-66.9},
+  Mexico:{lat:19.4,lng:-99.1},     'Costa Rica':{lat:9.9,lng:-84.1},
+  Guatemala:{lat:14.6,lng:-90.5},  Panama:{lat:8.9,lng:-79.5},
+  'Dominican Republic':{lat:18.5,lng:-69.9}, Other:{lat:-20,lng:-60}
+};
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
+
+// ── LOAD FROM SHEETS ──────────────────────────────────────────────────────
+function loadFromSheets(){
+  document.getElementById('sync-status').textContent='⟳ Loading...';
+  fetch(CSV_URL+'&t='+Date.now())
+    .then(function(r){return r.text();})
+    .then(function(csv){
+      D=parseCSV(csv);
+      renderTable();kpis();fillCountry();
+      if(map)placeMarkers();
+      document.getElementById('sync-status').textContent='✓ Synced with Google Sheets · '+D.length+' distributors';
+    })
+    .catch(function(){
+      document.getElementById('sync-status').textContent='✗ Could not load. Check connection.';
+    });
+}
+
+function parseCSV(csv){
+  var lines=csv.split('\n').filter(function(l){return l.trim();});
+  if(lines.length<2)return[];
+  var hdrs=lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim().toLowerCase();});
+  var rows=[];
+  for(var i=1;i<lines.length;i++){
+    var vals=parseLine(lines[i]);
+    if(!vals[0])continue;
+    var row={};hdrs.forEach(function(h,j){row[h]=(vals[j]||'').replace(/^"|"$/g,'').trim();});
+    var cats=[];
+    ['football','padel','tennis','hockey','landscaping','rugby'].forEach(function(c){
+      if((row[c]||'').toLowerCase()==='yes')cats.push(c.charAt(0).toUpperCase()+c.slice(1));
+    });
+    rows.push({name:row.name,country:row.country,city:row.city,contact:row.contact,
+      email:row.email,phone:row.phone,status:row.status||'Active',categories:cats,notes:row.notes});
+  }
+  return rows;
+}
+
+function parseLine(line){
+  var res=[],cur='',inQ=false;
+  for(var i=0;i<line.length;i++){
+    if(line[i]==='"')inQ=!inQ;
+    else if(line[i]===','&&!inQ){res.push(cur);cur='';}
+    else cur+=line[i];
+  }
+  res.push(cur);return res;
+}
+
+// ── SAVE TO SHEETS VIA APPS SCRIPT ───────────────────────────────────────
+function saveDist(){
+  var name=document.getElementById('d-name').value.trim();
+  var country=document.getElementById('d-country').value;
+  if(!name||!country){alert('Name and country are required.');return;}
+  var cats=[];
+  document.querySelectorAll('#d-cats .pill.on').forEach(function(p){cats.push(p.getAttribute('data-v'));});
+  var row={
+    name:name,country:country,
+    city:document.getElementById('d-city').value.trim(),
+    contact:document.getElementById('d-contact').value.trim(),
+    email:document.getElementById('d-email').value.trim(),
+    phone:document.getElementById('d-phone').value.trim(),
+    status:document.getElementById('d-status').value,
+    football:cats.indexOf('Football')>=0?'Yes':'No',
+    padel:cats.indexOf('Padel')>=0?'Yes':'No',
+    tennis:cats.indexOf('Tennis')>=0?'Yes':'No',
+    hockey:cats.indexOf('Hockey')>=0?'Yes':'No',
+    landscaping:cats.indexOf('Landscaping')>=0?'Yes':'No',
+    rugby:cats.indexOf('Rugby')>=0?'Yes':'No',
+    notes:document.getElementById('d-notes').value.trim(),
+    updated:new Date().toISOString().slice(0,10),
+    rowIndex:eD>=0?eD+2:-1
+  };
+
+  var params=Object.keys(row).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(row[k]);}).join('&');
+  fetch(AS_URL+'?'+params,{method:'GET',mode:'no-cors'})
+    .then(function(){
+      closePanel();
+      toast(eD>=0?'Updated! Refreshing...':'Saved! Refreshing...');
+      setTimeout(function(){loadFromSheets();},3000);
+    })
+    .catch(function(){
+      // Fallback: direct to sheet
+      toast('Auto-save unavailable. Opening Sheet...');
+      window.open(SHEET_URL,'_blank');
+      closePanel();
+    });
+}
+
+function openPanel(idx){
+  eD=idx===undefined?-1:idx;
+  var d=eD>=0?D[eD]:{};
+  document.getElementById('panel-title').textContent=eD>=0?'Edit distributor':'Add distributor';
+  document.getElementById('d-name').value=d.name||'';
+  document.getElementById('d-country').value=d.country||'';
+  document.getElementById('d-city').value=d.city||'';
+  document.getElementById('d-contact').value=d.contact||'';
+  document.getElementById('d-email').value=d.email||'';
+  document.getElementById('d-phone').value=d.phone||'';
+  document.getElementById('d-status').value=d.status||'Active';
+  document.getElementById('d-notes').value=d.notes||'';
+  document.querySelectorAll('#d-cats .pill').forEach(function(p){
+    p.classList.toggle('on',(d.categories||[]).indexOf(p.getAttribute('data-v'))>=0);
+  });
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('d-name').focus();
+}
+function closePanel(){document.getElementById('panel').classList.remove('open');eD=-1;}
+
+function switchTab(id,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('sec-'+id).classList.add('active');
+  if(id==='map'){
+    if(!map)initGoogleMap();
+    else placeMarkers();
+  }
+}
+
+function kpis(){
+  var a=0,p=0,c={};
+  D.forEach(function(d){if(d.status==='Active')a++;if(d.status==='Potential')p++;if(d.country)c[d.country]=1;});
+  document.getElementById('kt').textContent=D.length;
+  document.getElementById('ka').textContent=a;
+  document.getElementById('kp').textContent=p;
+  document.getElementById('kc').textContent=Object.keys(c).length;
+}
+
+function fillCountry(){
+  var c={};D.forEach(function(d){if(d.country)c[d.country]=1;});
+  var s=document.getElementById('fco');
+  s.innerHTML='<option value="">All countries</option>';
+  Object.keys(c).sort().forEach(function(co){var o=document.createElement('option');o.textContent=co;s.appendChild(o);});
+}
+
+function renderTable(){
+  var q=document.getElementById('fs').value.toLowerCase();
+  var st=document.getElementById('fst').value;
+  var co=document.getElementById('fco').value;
+  var ca=document.getElementById('fca').value;
+  var data=D.filter(function(d){
+    var t=[d.name,d.city,d.country,d.contact,d.email].join(' ').toLowerCase();
+    return(!q||t.indexOf(q)>=0)&&(!st||d.status===st)&&(!co||d.country===co)&&(!ca||(d.categories||[]).indexOf(ca)>=0);
+  });
+  var body=document.getElementById('tbody');
+  if(!data.length){body.innerHTML='<tr class="empty"><td colspan="8">No distributors found.</td></tr>';return;}
+  body.innerHTML=data.map(function(d,i){
+    var ri=D.indexOf(d);
+    var cats=(d.categories||[]).map(function(c){return'<span class="ctag">'+c+'</span>';}).join('');
+    return'<tr><td style="color:#bbb;font-size:11px">'+(i+1)+'</td>'+
+      '<td class="nm">'+d.name+'</td>'+
+      '<td><b>'+d.country+'</b>'+(d.city?'<br><small style="color:#aaa">'+d.city+'</small>':'')+'</td>'+
+      '<td>'+(cats||'—')+'</td>'+
+      '<td>'+(d.contact?'<b>'+d.contact+'</b>':'')+(d.email?'<br><small style="color:#aaa">'+d.email+'</small>':'')+'</td>'+
+      '<td><span class="badge '+(SC[d.status]||'bp')+'">'+d.status+'</span></td>'+
+      '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#888">'+(d.notes||'')+'</td>'+
+      '<td><button class="abt" onclick="openPanel('+ri+')" title="Edit">✏️</button>'+
+      '<button class="abt" onclick="delRow('+ri+')" title="Delete">🗑️</button></td></tr>';
+  }).join('');
+}
+
+function delRow(i){
+  if(!confirm('Delete "'+D[i].name+'"?\n\nYou will need to remove the row from Google Sheets.'))return;
+  window.open(SHEET_URL,'_blank');
+}
+
+// ── GOOGLE MAPS ───────────────────────────────────────────────────────────
+function initGoogleMap(){
+  map=new google.maps.Map(document.getElementById('gmap'),{
+    center:{lat:-20,lng:-65},zoom:3,
+    mapTypeId:'roadmap',
+    restriction:{latLngBounds:{north:35,south:-60,west:-120,east:-30},strictBounds:false},
+    styles:[
+      {featureType:'water',elementType:'geometry',stylers:[{color:'#BDD5EA'}]},
+      {featureType:'landscape',elementType:'geometry',stylers:[{color:'#F4F6FA'}]},
+      {featureType:'administrative.country',elementType:'geometry.stroke',stylers:[{color:'#aaa'},{weight:1.2}]},
+      {featureType:'road',stylers:[{visibility:'simplified'},{color:'#e0e0e0'}]},
+      {featureType:'poi',stylers:[{visibility:'off'}]},
+      {featureType:'transit',stylers:[{visibility:'off'}]}
+    ]
+  });
+  infoWin=new google.maps.InfoWindow();
+  placeMarkers();
+}
+
+function placeMarkers(){
+  if(!map)return;
+  markers.forEach(function(m){m.setMap(null);});
+  markers=[];
+  var by={};
+  D.forEach(function(d){if(d.country){if(!by[d.country])by[d.country]=[];by[d.country].push(d);}});
+  for(var country in by){
+    var coord=COORDS[country];if(!coord)continue;
+    var ds=by[country];
+    var hasActive=false;ds.forEach(function(d){if(d.status==='Active')hasActive=true;});
+    var col=MC[hasActive?'Active':ds[0].status]||'#888';
+    var marker=new google.maps.Marker({
+      position:coord,map:map,
+      icon:{path:google.maps.SymbolPath.CIRCLE,scale:ds.length>1?20:15,
+        fillColor:col,fillOpacity:0.9,strokeColor:'white',strokeWeight:2.5},
+      label:{text:String(ds.length),color:'white',fontSize:'12px',fontWeight:'bold'},
+      title:country
+    });
+    (function(c,ds_,m){
+      m.addListener('click',function(){
+        var content='<div style="font-family:-apple-system,sans-serif;min-width:200px;max-width:280px">'+
+          '<div style="font-size:15px;font-weight:600;color:#0D2B55;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #eee">'+c+'</div>'+
+          ds_.map(function(d){
+            return'<div style="padding:6px 0;border-bottom:1px solid #f0f0f0">'+
+              '<div style="font-weight:600;font-size:13px">'+d.name+'</div>'+
+              (d.city?'<div style="font-size:11px;color:#888">'+d.city+'</div>':'')+
+              '<div style="margin-top:3px"><span style="font-size:11px;font-weight:600;color:'+MC[d.status]+'">● '+d.status+'</span></div>'+
+              (d.contact?'<div style="font-size:11px;color:#666;margin-top:2px">👤 '+d.contact+'</div>':'')+
+              (d.email?'<div style="font-size:11px;color:#666">✉ '+d.email+'</div>':'')+
+              ((d.categories&&d.categories.length)?'<div style="font-size:10px;color:#888;margin-top:3px">'+d.categories.join(' · ')+'</div>':'')+
+              '</div>';
+          }).join('')+'</div>';
+        infoWin.setContent(content);
+        infoWin.open(map,m);
+      });
+    })(country,ds,marker);
+    markers.push(marker);
+  }
+}
+
+function exportCSV(){
+  var rows=[['Name','Country','City','Contact','Email','Phone','Status','Football','Padel','Tennis','Hockey','Landscaping','Rugby','Notes','Updated']];
+  D.forEach(function(d){
+    var c=d.categories||[];
+    rows.push([d.name,d.country,d.city,d.contact,d.email,d.phone,d.status,
+      c.indexOf('Football')>=0?'Yes':'No',c.indexOf('Padel')>=0?'Yes':'No',c.indexOf('Tennis')>=0?'Yes':'No',
+      c.indexOf('Hockey')>=0?'Yes':'No',c.indexOf('Landscaping')>=0?'Yes':'No',c.indexOf('Rugby')>=0?'Yes':'No',
+      d.notes,'']);
+  });
+  var csv=rows.map(function(r){return r.map(function(v){return'"'+(v||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='Domo_SG_Distributors.csv';a.click();
+}
+
+function importCSV(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    toast('To import, paste rows directly in Google Sheets.');
+    window.open(SHEET_URL,'_blank');
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+loadFromSheets();
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7AiJAv74JYdta27PYAI4pHZItoodgN8M" async defer></script>
+</body>
+</html>

@@ -225,7 +225,7 @@ tr:hover td{background:#FAFBFF}
       <div class="kpi"><div class="kpi-lbl">Avg USD/m²</div><div class="kpi-val a" id="sales-avg">—</div></div>
     </div>
     <div class="tbl-wrap">
-      <table><thead><tr><th>#</th><th>Distributor</th><th>Status</th><th>m² (year)</th><th>USD (year)</th><th>USD/m²</th></tr></thead>
+      <table><thead><tr><th>#</th><th>Distributor</th><th>Country</th><th>Status</th><th>m² (year)</th><th>USD (year)</th><th>USD/m²</th></tr></thead>
       <tbody id="sales-tbody"></tbody></table>
     </div>
   </div>
@@ -298,16 +298,26 @@ function parseSalesCSV(csv){
   var lines=csv.split('\n').filter(function(l){return l.trim();});
   if(lines.length<2)return[];
   var hdrs=lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim();});
+  // Find which columns are years (4-digit numbers) vs metadata
+  var yearCols=[];
+  hdrs.forEach(function(h,idx){if(/^\d{4}$/.test(h))yearCols.push(idx);});
+  var statusIdx=hdrs.findIndex(function(h){return h.toLowerCase()==='status';});
+  var countryIdx=hdrs.findIndex(function(h){return h.toLowerCase()==='país'||h.toLowerCase()==='pais'||h.toLowerCase()==='country';});
   var rows=[];
   for(var i=1;i<lines.length;i++){
     var vals=parseLine(lines[i]);
     if(!vals[0])continue;
-    var row={name:vals[0].replace(/^"|"$/g,'').trim(), status:(vals[1]||'').replace(/^"|"$/g,'').trim()||'Active', years:{}};
-    for(var j=2;j<hdrs.length;j++){
-      var y=hdrs[j];
-      var v=(vals[j]||'').replace(/^"|"$/g,'').replace(/,/g,'').trim();
+    var row={
+      name:vals[0].replace(/^"|"$/g,'').trim(),
+      country:countryIdx>=0?(vals[countryIdx]||'').replace(/^"|"$/g,'').trim():'',
+      status:(statusIdx>=0?(vals[statusIdx]||''):'').replace(/^"|"$/g,'').trim()||'Active',
+      years:{}
+    };
+    yearCols.forEach(function(idx){
+      var y=hdrs[idx];
+      var v=(vals[idx]||'').replace(/^"|"$/g,'').replace(/,/g,'').trim();
       row.years[y]=v?parseFloat(v):null;
-    }
+    });
     rows.push(row);
   }
   return rows;
@@ -320,14 +330,15 @@ function renderSales(){
 
   // Merge M2 and USD by distributor name
   var names={};
-  SALES_M2.forEach(function(r){names[r.name]=names[r.name]||{name:r.name,status:r.status};});
-  SALES_USD.forEach(function(r){names[r.name]=names[r.name]||{name:r.name,status:r.status};});
+  SALES_M2.forEach(function(r){names[r.name]=names[r.name]||{name:r.name,status:r.status,country:r.country};});
+  SALES_USD.forEach(function(r){names[r.name]=names[r.name]||{name:r.name,status:r.status,country:r.country};});
 
   var rows=Object.keys(names).map(function(n){
     var m2row=SALES_M2.find(function(r){return r.name===n;});
     var usdrow=SALES_USD.find(function(r){return r.name===n;});
     return{
       name:n,
+      country:names[n].country||(m2row&&m2row.country)||(usdrow&&usdrow.country)||'',
       status:names[n].status,
       m2:m2row?m2row.years[year]:null,
       usd:usdrow?usdrow.years[year]:null
@@ -347,7 +358,7 @@ function renderSales(){
   });
 
   var body=document.getElementById('sales-tbody');
-  if(!rows.length){body.innerHTML='<tr class="empty"><td colspan="6">No sales data for '+year+'.</td></tr>';}
+  if(!rows.length){body.innerHTML='<tr class="empty"><td colspan="7">No sales data for '+year+'.</td></tr>';}
   else{
     body.innerHTML=rows.map(function(r,i){
       var m2disp=r.m2!=null?r.m2.toLocaleString('en-US'):'—';
@@ -356,6 +367,7 @@ function renderSales(){
       var statusBadge=r.status==='Active'?'ba':(r.status==='Inactive'?'bi':'bp');
       return'<tr><td style="color:#bbb;font-size:11px">'+(i+1)+'</td>'+
         '<td class="nm">'+r.name+'</td>'+
+        '<td>'+(r.country||'—')+'</td>'+
         '<td><span class="badge '+statusBadge+'">'+r.status+'</span></td>'+
         '<td>'+m2disp+'</td>'+
         '<td>'+usddisp+'</td>'+

@@ -174,6 +174,7 @@ tr:hover td{background:#FAFBFF}
   <div class="tabs">
     <button class="tab active" onclick="switchTab('list',this)">☰ Distributors</button>
     <button class="tab" onclick="switchTab('map',this)">◉ Map</button>
+    <button class="tab" onclick="switchTab('sales',this)">📈 Sales</button>
   </div>
 
   <div id="sec-list" class="sec active">
@@ -198,17 +199,50 @@ tr:hover td{background:#FAFBFF}
       <span class="leg"><span class="ldot" style="background:#E24B4A"></span>Not Interested</span>
     </div>
   </div>
+
+  <div id="sec-sales" class="sec">
+    <div class="toolbar">
+      <select id="sales-year" onchange="renderSales()">
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+        <option value="2021">2021</option>
+        <option value="2020">2020</option>
+      </select>
+      <select id="sales-status" onchange="renderSales()">
+        <option value="">All statuses</option>
+        <option>Active</option>
+        <option>Inactive</option>
+      </select>
+      <input id="sales-search" placeholder="Search distributor..." oninput="renderSales()">
+    </div>
+    <div class="kpi-row" style="margin-bottom:14px">
+      <div class="kpi"><div class="kpi-lbl">Total m² (year)</div><div class="kpi-val" id="sales-total-m2">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">Total USD (year)</div><div class="kpi-val g" id="sales-total-usd">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">Distributors w/ sales</div><div class="kpi-val b" id="sales-count">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">Avg USD/m²</div><div class="kpi-val a" id="sales-avg">—</div></div>
+    </div>
+    <div class="tbl-wrap">
+      <table><thead><tr><th>#</th><th>Distributor</th><th>Status</th><th>m² (year)</th><th>USD (year)</th><th>USD/m²</th></tr></thead>
+      <tbody id="sales-tbody"></tbody></table>
+    </div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────
 var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=12635634&single=true&output=csv';
+var SALES_M2_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=524729758&single=true&output=csv';
+var SALES_USD_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=993453092&single=true&output=csv';
 var AS_URL  = 'https://script.google.com/macros/s/AKfycbxGvZ71zzLjJwtTW3vvi9uzqXoGkHwvEiLLLQaierS7jSf-rgHo3nhnWmda5NA8Z8t9/exec';
 var MAPS_KEY = 'AIzaSyC7AiJAv74JYdta27PYAI4pHZItoodgN8M';
 var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1mn_3sd6YAXr0vv1VfzXfFiZmgw1ieSiWMUl63q7qt7w';
 
 var D = [], eD = -1, map = null, markers = [], infoWin = null;
+var SALES_M2 = [], SALES_USD = [];
 var SC = {Active:'ba',Potential:'bp',Inactive:'bi','Not Interested':'bn'};
 var MC = {Active:'#1D9E75',Potential:'#378ADD',Inactive:'#888','Not Interested':'#E24B4A'};
 var COORDS = {
@@ -246,6 +280,99 @@ function loadFromSheets(){
     .catch(function(){
       document.getElementById('sync-status').textContent='✗ Could not load. Check connection.';
     });
+  loadSalesData();
+}
+
+function loadSalesData(){
+  fetch(SALES_M2_URL+'&t='+Date.now())
+    .then(function(r){return r.text();})
+    .then(function(csv){SALES_M2=parseSalesCSV(csv);renderSales();})
+    .catch(function(){});
+  fetch(SALES_USD_URL+'&t='+Date.now())
+    .then(function(r){return r.text();})
+    .then(function(csv){SALES_USD=parseSalesCSV(csv);renderSales();})
+    .catch(function(){});
+}
+
+function parseSalesCSV(csv){
+  var lines=csv.split('\n').filter(function(l){return l.trim();});
+  if(lines.length<2)return[];
+  var hdrs=lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim();});
+  var rows=[];
+  for(var i=1;i<lines.length;i++){
+    var vals=parseLine(lines[i]);
+    if(!vals[0])continue;
+    var row={name:vals[0].replace(/^"|"$/g,'').trim(), status:(vals[1]||'').replace(/^"|"$/g,'').trim()||'Active', years:{}};
+    for(var j=2;j<hdrs.length;j++){
+      var y=hdrs[j];
+      var v=(vals[j]||'').replace(/^"|"$/g,'').replace(/,/g,'').trim();
+      row.years[y]=v?parseFloat(v):null;
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+function renderSales(){
+  var year=document.getElementById('sales-year').value;
+  var statusF=document.getElementById('sales-status').value;
+  var q=(document.getElementById('sales-search').value||'').toLowerCase();
+
+  // Merge M2 and USD by distributor name
+  var names={};
+  SALES_M2.forEach(function(r){names[r.name]=names[r.name]||{name:r.name,status:r.status};});
+  SALES_USD.forEach(function(r){names[r.name]=names[r.name]||{name:r.name,status:r.status};});
+
+  var rows=Object.keys(names).map(function(n){
+    var m2row=SALES_M2.find(function(r){return r.name===n;});
+    var usdrow=SALES_USD.find(function(r){return r.name===n;});
+    return{
+      name:n,
+      status:names[n].status,
+      m2:m2row?m2row.years[year]:null,
+      usd:usdrow?usdrow.years[year]:null
+    };
+  });
+
+  rows=rows.filter(function(r){
+    if(statusF&&r.status!==statusF)return false;
+    if(q&&r.name.toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+
+  // Sort by USD desc (nulls last)
+  rows.sort(function(a,b){
+    var av=a.usd==null?-1:a.usd, bv=b.usd==null?-1:b.usd;
+    return bv-av;
+  });
+
+  var body=document.getElementById('sales-tbody');
+  if(!rows.length){body.innerHTML='<tr class="empty"><td colspan="6">No sales data for '+year+'.</td></tr>';}
+  else{
+    body.innerHTML=rows.map(function(r,i){
+      var m2disp=r.m2!=null?r.m2.toLocaleString('en-US'):'—';
+      var usddisp=r.usd!=null?'$'+r.usd.toLocaleString('en-US'):'—';
+      var ratio=(r.m2&&r.usd)?'$'+(r.usd/r.m2).toFixed(1):'—';
+      var statusBadge=r.status==='Active'?'ba':(r.status==='Inactive'?'bi':'bp');
+      return'<tr><td style="color:#bbb;font-size:11px">'+(i+1)+'</td>'+
+        '<td class="nm">'+r.name+'</td>'+
+        '<td><span class="badge '+statusBadge+'">'+r.status+'</span></td>'+
+        '<td>'+m2disp+'</td>'+
+        '<td>'+usddisp+'</td>'+
+        '<td style="color:#888">'+ratio+'</td></tr>';
+    }).join('');
+  }
+
+  // KPIs
+  var totalM2=0,totalUSD=0,count=0;
+  rows.forEach(function(r){
+    if(r.m2){totalM2+=r.m2;}
+    if(r.usd){totalUSD+=r.usd;count++;}
+  });
+  document.getElementById('sales-total-m2').textContent=totalM2?totalM2.toLocaleString('en-US'):'—';
+  document.getElementById('sales-total-usd').textContent=totalUSD?'$'+totalUSD.toLocaleString('en-US'):'—';
+  document.getElementById('sales-count').textContent=count||'—';
+  document.getElementById('sales-avg').textContent=(totalM2&&totalUSD)?'$'+(totalUSD/totalM2).toFixed(1):'—';
 }
 
 function parseCSV(csv){

@@ -177,6 +177,7 @@ tr:hover td{background:#FAFBFF}
     <button class="tab" onclick="switchTab('sales',this)">📈 Sales</button>
     <button class="tab" onclick="switchTab('targets',this)">🎯 Targets 2026</button>
     <button class="tab" onclick="switchTab('factory',this)">🏭 Factory</button>
+    <button class="tab" onclick="switchTab('group',this)">🥧 Group Share</button>
   </div>
 
   <div id="sec-list" class="sec active">
@@ -266,7 +267,35 @@ tr:hover td{background:#FAFBFF}
     </div>
   </div>
 
-  <div id="sec-factory" class="sec">
+  <div id="sec-group" class="sec">
+    <div class="kpi-row" style="margin-bottom:20px">
+      <div class="kpi"><div class="kpi-lbl">Group Total m² 2026</div><div class="kpi-val" id="grp-total-m2">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">TenCate m² 2026</div><div class="kpi-val g" id="grp-tc-m2">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">Group Total USD 2026</div><div class="kpi-val" id="grp-total-usd">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">TenCate USD 2026</div><div class="kpi-val g" id="grp-tc-usd">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="background:#fff;border-radius:10px;border:1px solid #DDE3EC;padding:20px;text-align:center">
+        <div style="font-size:14px;font-weight:600;color:#0D2B55;margin-bottom:16px">m² 2026 YTD</div>
+        <canvas id="chart-m2" width="280" height="280" style="max-width:100%"></canvas>
+        <div id="legend-m2" style="margin-top:16px"></div>
+      </div>
+      <div style="background:#fff;border-radius:10px;border:1px solid #DDE3EC;padding:20px;text-align:center">
+        <div style="font-size:14px;font-weight:600;color:#0D2B55;margin-bottom:16px">USD Invoiced 2026 YTD</div>
+        <canvas id="chart-usd" width="280" height="280" style="max-width:100%"></canvas>
+        <div id="legend-usd" style="margin-top:16px"></div>
+      </div>
+    </div>
+    <div style="background:#fff;border-radius:10px;border:1px solid #DDE3EC;padding:16px 20px;margin-top:20px">
+      <div style="font-size:13px;font-weight:600;color:#0D2B55;margin-bottom:12px">YTD Comparison — 2024 / 2025 / 2026</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Brand</th><th>m² 2024</th><th>m² 2025</th><th>m² 2026</th><th>vs 2025</th><th>USD 2024</th><th>USD 2025</th><th>USD 2026</th><th>vs 2025</th></tr></thead>
+          <tbody id="grp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
     <div class="kpi-row" style="margin-bottom:16px">
       <div class="kpi"><div class="kpi-lbl">m² 2024 YTD</div><div class="kpi-val" id="fac-m2-24">—</div></div>
       <div class="kpi"><div class="kpi-lbl">m² 2025 YTD</div><div class="kpi-val" id="fac-m2-25">—</div></div>
@@ -302,12 +331,14 @@ var SALES_M2_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFL
 var SALES_USD_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=993453092&single=true&output=csv';
 var TARGETS_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=180148522&single=true&output=csv';
 var FACTORY_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=1111840799&single=true&output=csv';
+var LIMONTA_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=1247270201&single=true&output=csv';
+var WB_URL        = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=156367185&single=true&output=csv';
 var AS_URL  = 'https://script.google.com/macros/s/AKfycbxjaw6YmGM_lXUERcmc5PQYd1sOecYew1LTcBTISzGDnEkcUea2Nm_BK8FcKxFLnB8/exec';
 var MAPS_KEY = 'AIzaSyC7AiJAv74JYdta27PYAI4pHZItoodgN8M';
 var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1mn_3sd6YAXr0vv1VfzXfFiZmgw1ieSiWMUl63q7qt7w';
 
 var D = [], eD = -1, map = null, markers = [], infoWin = null;
-var SALES_M2 = [], SALES_USD = [], TARGETS = [], FACTORY = [];
+var SALES_M2 = [], SALES_USD = [], TARGETS = [], FACTORY = [], LIMONTA = [];
 var SC = {Active:'ba',Potential:'bp',Inactive:'bi','Not Interested':'bn'};
 var MC = {Active:'#1D9E75',Potential:'#378ADD',Inactive:'#888','Not Interested':'#E24B4A'};
 var COORDS = {
@@ -363,7 +394,11 @@ function loadSalesData(){
     .catch(function(){});
   fetch(FACTORY_URL+'&t='+Date.now())
     .then(function(r){return r.text();})
-    .then(function(csv){FACTORY=parseFactoryCSV(csv);renderFactory();})
+    .then(function(csv){FACTORY=parseFactoryCSV(csv);renderFactory();renderGroup();})
+    .catch(function(){});
+  fetch(LIMONTA_URL+'&t='+Date.now())
+    .then(function(r){return r.text();})
+    .then(function(csv){LIMONTA=parseFactoryCSV(csv);renderGroup();})
     .catch(function(){});
 }
 
@@ -651,6 +686,130 @@ function openPanel(idx){
 }
 function closePanel(){document.getElementById('panel').classList.remove('open');eD=-1;}
 
+function drawPie(canvasId, data){
+  var canvas=document.getElementById(canvasId);
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  var W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  var total=data.reduce(function(a,b){return a+b.value;},0);
+  if(!total){
+    ctx.fillStyle='#eee';ctx.beginPath();ctx.arc(W/2,H/2,W/2-10,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#aaa';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText('No data',W/2,H/2+5);
+    return;
+  }
+  var start=0, cx=W/2, cy=H/2, r=W/2-10;
+  data.forEach(function(d){
+    var slice=d.value/total*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+slice);
+    ctx.closePath();ctx.fillStyle=d.color;ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    // Label
+    var mid=start+slice/2;
+    var pct=Math.round(d.value/total*100);
+    if(pct>5){
+      var lx=cx+Math.cos(mid)*(r*0.65), ly=cy+Math.sin(mid)*(r*0.65);
+      ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(pct+'%',lx,ly);
+    }
+    start+=slice;
+  });
+}
+
+function renderGroup(){
+  if(!FACTORY.length&&!LIMONTA.length)return;
+
+  var fmt=function(n){return n?n.toLocaleString('en-US'):'—';};
+  var fmtUSD=function(n){return n?'$'+n.toLocaleString('en-US'):'—';};
+  var pctStr=function(cur,prev){
+    if(!prev||!cur)return'—';
+    var p=Math.round((cur-prev)/prev*100);
+    return(p>=0?'▲ +':'▼ ')+p+'%';
+  };
+  var pctStyle=function(cur,prev){
+    if(!prev||!cur)return'color:#aaa';
+    return cur>=prev?'color:#1D9E75;font-weight:600':'color:#E24B4A;font-weight:600';
+  };
+
+  // TenCate totals from Factory (sum all countries)
+  var tc={m2_24:0,m2_25:0,m2_26:0,usd_24:0,usd_25:0,usd_26:0};
+  FACTORY.forEach(function(r){
+    tc.m2_24+=r.M2_2024||0; tc.m2_25+=r.M2_2025||0; tc.m2_26+=r.M2_2026||0;
+    tc.usd_24+=r.USD_2024||0; tc.usd_25+=r.USD_2025||0; tc.usd_26+=r.USD_2026||0;
+  });
+
+  // Limonta totals (single row)
+  var lim={m2_24:0,m2_25:0,m2_26:0,usd_24:0,usd_25:0,usd_26:0};
+  if(LIMONTA.length){
+    var lr=LIMONTA[0];
+    lim.m2_24=lr.M2_2024||0; lim.m2_25=lr.M2_2025||0; lim.m2_26=lr.M2_2026||0;
+    lim.usd_24=lr.USD_2024||0; lim.usd_25=lr.USD_2025||0; lim.usd_26=lr.USD_2026||0;
+  }
+
+  var totalM2=tc.m2_26+lim.m2_26;
+  var totalUSD=tc.usd_26+lim.usd_26;
+
+  // KPIs
+  document.getElementById('grp-total-m2').textContent=fmt(totalM2);
+  document.getElementById('grp-tc-m2').textContent=fmt(tc.m2_26);
+  document.getElementById('grp-total-usd').textContent=fmtUSD(totalUSD);
+  document.getElementById('grp-tc-usd').textContent=fmtUSD(tc.usd_26);
+
+  // Colors
+  var TC_COLOR='#1D9E75', LIM_COLOR='#185FA5';
+
+  // Draw pie charts
+  var dataM2=[
+    {label:'TenCate',value:tc.m2_26,color:TC_COLOR},
+    {label:'Limonta',value:lim.m2_26,color:LIM_COLOR}
+  ];
+  var dataUSD=[
+    {label:'TenCate',value:tc.usd_26,color:TC_COLOR},
+    {label:'Limonta',value:lim.usd_26,color:LIM_COLOR}
+  ];
+  drawPie('chart-m2',dataM2);
+  drawPie('chart-usd',dataUSD);
+
+  // Legends
+  function makeLegend(elId, data, total){
+    var el=document.getElementById(elId);
+    if(!el)return;
+    el.innerHTML=data.map(function(d){
+      var pct=total?Math.round(d.value/total*100):0;
+      return'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:4px 0;font-size:12px">'+
+        '<span style="width:12px;height:12px;border-radius:3px;background:'+d.color+';flex-shrink:0;display:inline-block"></span>'+
+        '<span style="color:#555">'+d.label+'</span>'+
+        '<span style="font-weight:600;color:#0D2B55">'+pct+'%</span>'+
+        '</div>';
+    }).join('');
+  }
+  makeLegend('legend-m2',dataM2,totalM2);
+  makeLegend('legend-usd',dataUSD,totalUSD);
+
+  // Comparison table
+  var brands=[
+    {name:'TenCate (Domo+GF+WB)',color:TC_COLOR,d:tc},
+    {name:'Limonta',color:LIM_COLOR,d:lim}
+  ];
+  document.getElementById('grp-tbody').innerHTML=brands.map(function(b){
+    var d=b.d;
+    return'<tr>'+
+      '<td><span style="display:inline-flex;align-items:center;gap:6px">'+
+      '<span style="width:10px;height:10px;border-radius:50%;background:'+b.color+';display:inline-block"></span>'+
+      '<b>'+b.name+'</b></span></td>'+
+      '<td>'+fmt(d.m2_24)+'</td>'+
+      '<td>'+fmt(d.m2_25)+'</td>'+
+      '<td><b>'+fmt(d.m2_26)+'</b></td>'+
+      '<td style="'+pctStyle(d.m2_26,d.m2_25)+'">'+pctStr(d.m2_26,d.m2_25)+'</td>'+
+      '<td>'+fmtUSD(d.usd_24)+'</td>'+
+      '<td>'+fmtUSD(d.usd_25)+'</td>'+
+      '<td><b>'+fmtUSD(d.usd_26)+'</b></td>'+
+      '<td style="'+pctStyle(d.usd_26,d.usd_25)+'">'+pctStr(d.usd_26,d.usd_25)+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
 function parseFactoryCSV(csv){
   var lines=csv.split('\n').filter(function(l){return l.trim();});
   if(lines.length<2)return[];
@@ -742,6 +901,7 @@ function switchTab(id,el){
   if(id==='targets') renderTargets();
   if(id==='sales') renderSales();
   if(id==='factory') renderFactory();
+  if(id==='group') renderGroup();
 }
 
 function kpis(){

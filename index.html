@@ -175,6 +175,7 @@ tr:hover td{background:#FAFBFF}
     <button class="tab active" onclick="switchTab('list',this)">☰ Distributors</button>
     <button class="tab" onclick="switchTab('map',this)">◉ Map</button>
     <button class="tab" onclick="switchTab('sales',this)">📈 Sales</button>
+    <button class="tab" onclick="switchTab('targets',this)">🎯 Targets 2026</button>
   </div>
 
   <div id="sec-list" class="sec active">
@@ -200,7 +201,43 @@ tr:hover td{background:#FAFBFF}
     </div>
   </div>
 
-  <div id="sec-sales" class="sec">
+  <div id="sec-targets" class="sec">
+    <div class="kpi-row" style="margin-bottom:16px">
+      <div class="kpi"><div class="kpi-lbl">Target m² 2026</div><div class="kpi-val" id="tgt-total-m2">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">Actual m² 2026</div><div class="kpi-val g" id="tgt-actual-m2">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">Target USD 2026</div><div class="kpi-val" id="tgt-total-usd">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">Actual USD 2026</div><div class="kpi-val g" id="tgt-actual-usd">—</div></div>
+    </div>
+    <div style="background:#fff;border-radius:10px;border:1px solid #DDE3EC;padding:16px 20px;margin-bottom:16px" id="tgt-total-card">
+      <div style="font-size:13px;font-weight:600;color:#0D2B55;margin-bottom:12px">🌎 South America Total</div>
+      <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px">
+          <span>m²</span><span id="tgt-sa-m2-pct">—</span>
+        </div>
+        <div style="background:#F0F2F5;border-radius:20px;height:10px;overflow:hidden">
+          <div id="tgt-sa-m2-bar" style="background:#1D9E75;height:100%;border-radius:20px;width:0%;transition:width .6s"></div>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px">
+          <span>USD</span><span id="tgt-sa-usd-pct">—</span>
+        </div>
+        <div style="background:#F0F2F5;border-radius:20px;height:10px;overflow:hidden">
+          <div id="tgt-sa-usd-bar" style="background:#185FA5;height:100%;border-radius:20px;width:0%;transition:width .6s"></div>
+        </div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Country</th>
+          <th>Target m²</th><th>Actual m²</th><th>% m²</th>
+          <th>Target USD</th><th>Actual USD</th><th>% USD</th>
+        </tr></thead>
+        <tbody id="tgt-tbody"></tbody>
+      </table>
+    </div>
+  </div>
     <div class="toolbar">
       <select id="sales-year" onchange="renderSales()">
         <option value="2026">2026</option>
@@ -237,12 +274,13 @@ tr:hover td{background:#FAFBFF}
 var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=12635634&single=true&output=csv';
 var SALES_M2_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=524729758&single=true&output=csv';
 var SALES_USD_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=993453092&single=true&output=csv';
+var TARGETS_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=180148522&single=true&output=csv';
 var AS_URL  = 'https://script.google.com/macros/s/AKfycbxjaw6YmGM_lXUERcmc5PQYd1sOecYew1LTcBTISzGDnEkcUea2Nm_BK8FcKxFLnB8/exec';
 var MAPS_KEY = 'AIzaSyC7AiJAv74JYdta27PYAI4pHZItoodgN8M';
 var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1mn_3sd6YAXr0vv1VfzXfFiZmgw1ieSiWMUl63q7qt7w';
 
 var D = [], eD = -1, map = null, markers = [], infoWin = null;
-var SALES_M2 = [], SALES_USD = [];
+var SALES_M2 = [], SALES_USD = [], TARGETS = [];
 var SC = {Active:'ba',Potential:'bp',Inactive:'bi','Not Interested':'bn'};
 var MC = {Active:'#1D9E75',Potential:'#378ADD',Inactive:'#888','Not Interested':'#E24B4A'};
 var COORDS = {
@@ -292,6 +330,97 @@ function loadSalesData(){
     .then(function(r){return r.text();})
     .then(function(csv){SALES_USD=parseSalesCSV(csv);renderSales();})
     .catch(function(){});
+  fetch(TARGETS_URL+'&t='+Date.now())
+    .then(function(r){return r.text();})
+    .then(function(csv){TARGETS=parseTargetsCSV(csv);renderTargets();})
+    .catch(function(){});
+}
+
+function parseTargetsCSV(csv){
+  var lines=csv.split('\n').filter(function(l){return l.trim();});
+  if(lines.length<2)return[];
+  var rows=[];
+  for(var i=1;i<lines.length;i++){
+    var vals=parseLine(lines[i]);
+    if(!vals[0])continue;
+    var country=vals[0].replace(/^"|"$/g,'').trim();
+    var m2=parseFloat((vals[1]||'').replace(/^"|"$/g,'').replace(/,/g,'').trim())||0;
+    var usd=parseFloat((vals[2]||'').replace(/^"|"$/g,'').replace(/,/g,'').trim())||0;
+    rows.push({country:country,m2:m2,usd:usd});
+  }
+  return rows;
+}
+
+function renderTargets(){
+  if(!TARGETS.length)return;
+
+  // Get actuals for 2026 from sales data grouped by country
+  var actualM2ByCountry={}, actualUSDByCountry={};
+  SALES_M2.forEach(function(r){
+    var c=r.country;if(!c)return;
+    actualM2ByCountry[c]=(actualM2ByCountry[c]||0)+(r.years['2026']||0);
+  });
+  SALES_USD.forEach(function(r){
+    var c=r.country;if(!c)return;
+    actualUSDByCountry[c]=(actualUSDByCountry[c]||0)+(r.years['2026']||0);
+  });
+
+  // Total SA actual
+  var totalActualM2=Object.values(actualM2ByCountry).reduce(function(a,b){return a+b;},0);
+  var totalActualUSD=Object.values(actualUSDByCountry).reduce(function(a,b){return a+b;},0);
+
+  // Find total target row
+  var totalRow=TARGETS.find(function(r){return r.country.toLowerCase().indexOf('total')>=0||r.country.toLowerCase().indexOf('south')>=0;});
+  var totalTargetM2=totalRow?totalRow.m2:0;
+  var totalTargetUSD=totalRow?totalRow.usd:0;
+
+  // KPIs
+  document.getElementById('tgt-total-m2').textContent=totalTargetM2?totalTargetM2.toLocaleString('en-US'):'—';
+  document.getElementById('tgt-actual-m2').textContent=totalActualM2?totalActualM2.toLocaleString('en-US'):'—';
+  document.getElementById('tgt-total-usd').textContent=totalTargetUSD?'$'+totalTargetUSD.toLocaleString('en-US'):'—';
+  document.getElementById('tgt-actual-usd').textContent=totalActualUSD?'$'+totalActualUSD.toLocaleString('en-US'):'—';
+
+  // SA Total progress bars
+  var pctM2=totalTargetM2?Math.min(Math.round(totalActualM2/totalTargetM2*100),100):0;
+  var pctUSD=totalTargetUSD?Math.min(Math.round(totalActualUSD/totalTargetUSD*100),100):0;
+  document.getElementById('tgt-sa-m2-bar').style.width=pctM2+'%';
+  document.getElementById('tgt-sa-m2-pct').textContent=(totalActualM2?totalActualM2.toLocaleString('en-US'):'0')+' / '+(totalTargetM2?totalTargetM2.toLocaleString('en-US'):'—')+' ('+pctM2+'%)';
+  document.getElementById('tgt-sa-usd-bar').style.width=pctUSD+'%';
+  document.getElementById('tgt-sa-usd-pct').textContent=(totalActualUSD?'$'+totalActualUSD.toLocaleString('en-US'):'$0')+' / '+(totalTargetUSD?'$'+totalTargetUSD.toLocaleString('en-US'):'—')+' ('+pctUSD+'%)';
+
+  // Country rows (skip total row)
+  var countryRows=TARGETS.filter(function(r){
+    return r.country.toLowerCase().indexOf('total')<0&&r.country.toLowerCase().indexOf('south')<0;
+  });
+
+  var body=document.getElementById('tgt-tbody');
+  if(!countryRows.length){body.innerHTML='<tr class="empty"><td colspan="7">No targets found. Add them to the Targets 2026 sheet.</td></tr>';return;}
+
+  body.innerHTML=countryRows.map(function(r){
+    var am2=actualM2ByCountry[r.country]||0;
+    var ausd=actualUSDByCountry[r.country]||0;
+    var pm2=r.m2?Math.min(Math.round(am2/r.m2*100),100):0;
+    var pusd=r.usd?Math.min(Math.round(ausd/r.usd*100),100):0;
+    var barM2Color=pm2>=100?'#1D9E75':pm2>=70?'#EFA226':'#E24B4A';
+    var barUSDColor=pusd>=100?'#1D9E75':pusd>=70?'#EFA226':'#E24B4A';
+    return'<tr>'+
+      '<td class="nm">'+r.country+'</td>'+
+      '<td>'+(r.m2?r.m2.toLocaleString('en-US'):'—')+'</td>'+
+      '<td>'+am2.toLocaleString('en-US')+'</td>'+
+      '<td style="min-width:120px">'+
+        '<div style="display:flex;align-items:center;gap:6px">'+
+        '<div style="flex:1;background:#F0F2F5;border-radius:10px;height:8px;overflow:hidden">'+
+        '<div style="background:'+barM2Color+';height:100%;border-radius:10px;width:'+pm2+'%"></div></div>'+
+        '<span style="font-size:11px;color:#888;white-space:nowrap">'+pm2+'%</span></div></td>'+
+      '<td>'+(r.usd?'$'+r.usd.toLocaleString('en-US'):'—')+'</td>'+
+      '<td>'+(ausd?'$'+ausd.toLocaleString('en-US'):'$0')+'</td>'+
+      '<td style="min-width:120px">'+
+        '<div style="display:flex;align-items:center;gap:6px">'+
+        '<div style="flex:1;background:#F0F2F5;border-radius:10px;height:8px;overflow:hidden">'+
+        '<div style="background:'+barUSDColor+';height:100%;border-radius:10px;width:'+pusd+'%"></div></div>'+
+        '<span style="font-size:11px;color:#888;white-space:nowrap">'+pusd+'%</span></div></td>'+
+      '</tr>';
+  }).join('');
 }
 
 function parseSalesCSV(csv){
@@ -494,6 +623,8 @@ function switchTab(id,el){
     if(!map)initGoogleMap();
     else placeMarkers();
   }
+  if(id==='targets') renderTargets();
+  if(id==='sales') renderSales();
 }
 
 function kpis(){

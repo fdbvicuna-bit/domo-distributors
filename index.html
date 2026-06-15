@@ -176,6 +176,7 @@ tr:hover td{background:#FAFBFF}
     <button class="tab" onclick="switchTab('map',this)">◉ Map</button>
     <button class="tab" onclick="switchTab('sales',this)">📈 Sales</button>
     <button class="tab" onclick="switchTab('targets',this)">🎯 Targets 2026</button>
+    <button class="tab" onclick="switchTab('factory',this)">🏭 Factory</button>
   </div>
 
   <div id="sec-list" class="sec active">
@@ -242,18 +243,14 @@ tr:hover td{background:#FAFBFF}
   <div id="sec-sales" class="sec">
     <div class="toolbar">
       <select id="sales-year" onchange="renderSales()">
-        <option value="2026">2026</option>
-        <option value="2025">2025</option>
-        <option value="2024">2024</option>
-        <option value="2023">2023</option>
-        <option value="2022">2022</option>
-        <option value="2021">2021</option>
+        <option value="2026">2026</option><option value="2025">2025</option>
+        <option value="2024">2024</option><option value="2023">2023</option>
+        <option value="2022">2022</option><option value="2021">2021</option>
         <option value="2020">2020</option>
       </select>
       <select id="sales-status" onchange="renderSales()">
         <option value="">All statuses</option>
-        <option>Active</option>
-        <option>Inactive</option>
+        <option>Active</option><option>Inactive</option>
       </select>
       <input id="sales-search" placeholder="Search distributor..." oninput="renderSales()">
     </div>
@@ -268,6 +265,33 @@ tr:hover td{background:#FAFBFF}
       <tbody id="sales-tbody"></tbody></table>
     </div>
   </div>
+
+  <div id="sec-factory" class="sec">
+    <div class="kpi-row" style="margin-bottom:16px">
+      <div class="kpi"><div class="kpi-lbl">m² 2024 YTD</div><div class="kpi-val" id="fac-m2-24">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">m² 2025 YTD</div><div class="kpi-val" id="fac-m2-25">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">m² 2026 YTD</div><div class="kpi-val g" id="fac-m2-26">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">vs 2025</div><div class="kpi-val" id="fac-m2-vs">—</div></div>
+    </div>
+    <div class="kpi-row" style="margin-bottom:16px">
+      <div class="kpi"><div class="kpi-lbl">USD 2024 YTD</div><div class="kpi-val" id="fac-usd-24">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">USD 2025 YTD</div><div class="kpi-val" id="fac-usd-25">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">USD 2026 YTD</div><div class="kpi-val g" id="fac-usd-26">—</div></div>
+      <div class="kpi"><div class="kpi-lbl">vs 2025</div><div class="kpi-val" id="fac-usd-vs">—</div></div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Country</th>
+          <th>m² 2024 YTD</th><th>m² 2025 YTD</th><th>m² 2026 YTD</th><th>vs 2025</th>
+          <th>USD 2024 YTD</th><th>USD 2025 YTD</th><th>USD 2026 YTD</th><th>vs 2025</th>
+        </tr></thead>
+        <tbody id="fac-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+
 </div>
 <div class="toast" id="toast"></div>
 
@@ -277,12 +301,13 @@ var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckk
 var SALES_M2_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=524729758&single=true&output=csv';
 var SALES_USD_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=993453092&single=true&output=csv';
 var TARGETS_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=180148522&single=true&output=csv';
+var FACTORY_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4dcfy2iFLbObckkXA2il568QIPnMuGqGKKOCu-TBaXklRg3NmmGcG-SnGf9PKmWJUtii40WJcCFxj/pub?gid=1111840799&single=true&output=csv';
 var AS_URL  = 'https://script.google.com/macros/s/AKfycbxjaw6YmGM_lXUERcmc5PQYd1sOecYew1LTcBTISzGDnEkcUea2Nm_BK8FcKxFLnB8/exec';
 var MAPS_KEY = 'AIzaSyC7AiJAv74JYdta27PYAI4pHZItoodgN8M';
 var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1mn_3sd6YAXr0vv1VfzXfFiZmgw1ieSiWMUl63q7qt7w';
 
 var D = [], eD = -1, map = null, markers = [], infoWin = null;
-var SALES_M2 = [], SALES_USD = [], TARGETS = [];
+var SALES_M2 = [], SALES_USD = [], TARGETS = [], FACTORY = [];
 var SC = {Active:'ba',Potential:'bp',Inactive:'bi','Not Interested':'bn'};
 var MC = {Active:'#1D9E75',Potential:'#378ADD',Inactive:'#888','Not Interested':'#E24B4A'};
 var COORDS = {
@@ -335,6 +360,10 @@ function loadSalesData(){
   fetch(TARGETS_URL+'&t='+Date.now())
     .then(function(r){return r.text();})
     .then(function(csv){TARGETS=parseTargetsCSV(csv);renderTargets();})
+    .catch(function(){});
+  fetch(FACTORY_URL+'&t='+Date.now())
+    .then(function(r){return r.text();})
+    .then(function(csv){FACTORY=parseFactoryCSV(csv);renderFactory();})
     .catch(function(){});
 }
 
@@ -622,6 +651,79 @@ function openPanel(idx){
 }
 function closePanel(){document.getElementById('panel').classList.remove('open');eD=-1;}
 
+function parseFactoryCSV(csv){
+  var lines=csv.split('\n').filter(function(l){return l.trim();});
+  if(lines.length<2)return[];
+  var hdrs=lines[0].split(',').map(function(h){return h.replace(/"/g,'').trim();});
+  var rows=[];
+  for(var i=1;i<lines.length;i++){
+    var vals=parseLine(lines[i]);
+    if(!vals[0])continue;
+    var row={country:vals[0].replace(/^"|"$/g,'').trim()};
+    hdrs.forEach(function(h,j){
+      var v=(vals[j]||'').replace(/^"|"$/g,'').replace(/,/g,'').trim();
+      row[h]=v?parseFloat(v):0;
+    });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function renderFactory(){
+  if(!FACTORY.length)return;
+  var fmt=function(n){return n?n.toLocaleString('en-US'):'—';};
+  var fmtUSD=function(n){return n?'$'+n.toLocaleString('en-US'):'—';};
+  var pctColor=function(p){return p>=100?'#1D9E75':p>=70?'#EFA226':'#E24B4A';};
+  var pctStr=function(cur,prev){
+    if(!prev||!cur)return'—';
+    var p=Math.round((cur-prev)/prev*100);
+    return(p>=0?'▲ +':'▼ ')+p+'%';
+  };
+  var pctStyle=function(cur,prev){
+    if(!prev||!cur)return'color:#aaa';
+    return cur>=prev?'color:#1D9E75;font-weight:600':'color:#E24B4A;font-weight:600';
+  };
+
+  // Totals
+  var tot={m2_24:0,m2_25:0,m2_26:0,usd_24:0,usd_25:0,usd_26:0};
+  FACTORY.forEach(function(r){
+    tot.m2_24+=r.M2_2024||0; tot.m2_25+=r.M2_2025||0; tot.m2_26+=r.M2_2026||0;
+    tot.usd_24+=r.USD_2024||0; tot.usd_25+=r.USD_2025||0; tot.usd_26+=r.USD_2026||0;
+  });
+
+  document.getElementById('fac-m2-24').textContent=fmt(tot.m2_24);
+  document.getElementById('fac-m2-25').textContent=fmt(tot.m2_25);
+  document.getElementById('fac-m2-26').textContent=fmt(tot.m2_26);
+  document.getElementById('fac-m2-vs').textContent=pctStr(tot.m2_26,tot.m2_25);
+  document.getElementById('fac-m2-vs').style.cssText=pctStyle(tot.m2_26,tot.m2_25)+';font-size:20px;font-weight:700';
+  document.getElementById('fac-usd-24').textContent=fmtUSD(tot.usd_24);
+  document.getElementById('fac-usd-25').textContent=fmtUSD(tot.usd_25);
+  document.getElementById('fac-usd-26').textContent=fmtUSD(tot.usd_26);
+  document.getElementById('fac-usd-vs').textContent=pctStr(tot.usd_26,tot.usd_25);
+  document.getElementById('fac-usd-vs').style.cssText=pctStyle(tot.usd_26,tot.usd_25)+';font-size:20px;font-weight:700';
+
+  // Sort by 2026 USD desc
+  var rows=FACTORY.slice().sort(function(a,b){return (b.USD_2026||0)-(a.USD_2026||0);});
+
+  var body=document.getElementById('fac-tbody');
+  if(!rows.length){body.innerHTML='<tr class="empty"><td colspan="9">No factory data yet.</td></tr>';return;}
+  body.innerHTML=rows.map(function(r){
+    var vs_m2=pctStr(r.M2_2026,r.M2_2025);
+    var vs_usd=pctStr(r.USD_2026,r.USD_2025);
+    return'<tr>'+
+      '<td class="nm">'+r.country+'</td>'+
+      '<td>'+fmt(r.M2_2024)+'</td>'+
+      '<td>'+fmt(r.M2_2025)+'</td>'+
+      '<td><b>'+fmt(r.M2_2026)+'</b></td>'+
+      '<td style="'+pctStyle(r.M2_2026,r.M2_2025)+'">'+vs_m2+'</td>'+
+      '<td>'+fmtUSD(r.USD_2024)+'</td>'+
+      '<td>'+fmtUSD(r.USD_2025)+'</td>'+
+      '<td><b>'+fmtUSD(r.USD_2026)+'</b></td>'+
+      '<td style="'+pctStyle(r.USD_2026,r.USD_2025)+'">'+vs_usd+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
 function switchTab(id,el){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
   document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('active');});
@@ -633,6 +735,7 @@ function switchTab(id,el){
   }
   if(id==='targets') renderTargets();
   if(id==='sales') renderSales();
+  if(id==='factory') renderFactory();
 }
 
 function kpis(){

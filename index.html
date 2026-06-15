@@ -238,6 +238,8 @@ tr:hover td{background:#FAFBFF}
       </table>
     </div>
   </div>
+
+  <div id="sec-sales" class="sec">
     <div class="toolbar">
       <select id="sales-year" onchange="renderSales()">
         <option value="2026">2026</option>
@@ -388,9 +390,15 @@ function renderTargets(){
   document.getElementById('tgt-sa-usd-bar').style.width=pctUSD+'%';
   document.getElementById('tgt-sa-usd-pct').textContent=(totalActualUSD?'$'+totalActualUSD.toLocaleString('en-US'):'$0')+' / '+(totalTargetUSD?'$'+totalTargetUSD.toLocaleString('en-US'):'—')+' ('+pctUSD+'%)';
 
-  // Country rows (skip total row)
+  // Country rows (skip total row), sorted by USD compliance desc
   var countryRows=TARGETS.filter(function(r){
     return r.country.toLowerCase().indexOf('total')<0&&r.country.toLowerCase().indexOf('south')<0;
+  });
+
+  countryRows.sort(function(a,b){
+    var pa=a.usd?Math.round((actualUSDByCountry[a.country]||0)/a.usd*100):0;
+    var pb=b.usd?Math.round((actualUSDByCountry[b.country]||0)/b.usd*100):0;
+    return pb-pa;
   });
 
   var body=document.getElementById('tgt-tbody');

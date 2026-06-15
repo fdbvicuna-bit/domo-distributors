@@ -809,11 +809,12 @@ function parseFactoryCSV(csv){
   var rows=[];
   for(var i=1;i<lines.length;i++){
     var vals=parseLine(lines[i]);
-    if(!vals[0])continue;
-    var row={country:vals[0].replace(/^"|"$/g,'').trim()};
+    var country=(vals[0]||'').replace(/^"|"$/g,'').trim();
+    if(!country)continue;
+    var row={country:country};
     hdrs.forEach(function(h,j){
       var v=(vals[j]||'').replace(/^"|"$/g,'').replace(/,/g,'').trim();
-      row[h]=v?parseFloat(v):0;
+      row[h]=v===''?0:(parseFloat(v)||0);
     });
     rows.push(row);
   }

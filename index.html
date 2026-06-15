@@ -702,8 +702,14 @@ function renderFactory(){
   document.getElementById('fac-usd-vs').textContent=pctStr(tot.usd_26,tot.usd_25);
   document.getElementById('fac-usd-vs').style.cssText=pctStyle(tot.usd_26,tot.usd_25)+';font-size:20px;font-weight:700';
 
-  // Sort by 2026 USD desc
-  var rows=FACTORY.slice().sort(function(a,b){return (b.USD_2026||0)-(a.USD_2026||0);});
+  // Sort by 2026 m2 desc, zeros last
+  var rows=FACTORY.slice().sort(function(a,b){
+    var av=a.M2_2026||0, bv=b.M2_2026||0;
+    if(av===0&&bv===0)return 0;
+    if(av===0)return 1;
+    if(bv===0)return -1;
+    return bv-av;
+  });
 
   var body=document.getElementById('fac-tbody');
   if(!rows.length){body.innerHTML='<tr class="empty"><td colspan="9">No factory data yet.</td></tr>';return;}

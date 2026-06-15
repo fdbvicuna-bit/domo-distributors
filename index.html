@@ -287,8 +287,9 @@ tr:hover td{background:#FAFBFF}
       </div>
     </div>
   </div>
+
+  <div id="sec-factory" class="sec">
     <div class="kpi-row" style="margin-bottom:16px">
-      <div class="kpi"><div class="kpi-lbl">m² 2024 YTD</div><div class="kpi-val" id="fac-m2-24">—</div></div>
       <div class="kpi"><div class="kpi-lbl">m² 2025 YTD</div><div class="kpi-val" id="fac-m2-25">—</div></div>
       <div class="kpi"><div class="kpi-lbl">m² 2026 YTD</div><div class="kpi-val g" id="fac-m2-26">—</div></div>
       <div class="kpi"><div class="kpi-lbl">vs 2025</div><div class="kpi-val" id="fac-m2-vs">—</div></div>
@@ -852,8 +853,10 @@ function renderFactory(){
   document.getElementById('fac-usd-vs').textContent=pctStr(tot.usd_26,tot.usd_25);
   document.getElementById('fac-usd-vs').style.cssText=pctStyle(tot.usd_26,tot.usd_25)+';font-size:20px;font-weight:700';
 
-  // Sort by 2026 m2 desc, zeros last
-  var rows=FACTORY.slice().sort(function(a,b){
+  // Sort by 2026 m2 desc, zeros last — and filter out rows with no data at all
+  var rows=FACTORY.slice().filter(function(r){
+    return (r.M2_2024||0)+(r.M2_2025||0)+(r.M2_2026||0)+(r.USD_2024||0)+(r.USD_2025||0)+(r.USD_2026||0)>0;
+  }).sort(function(a,b){
     var av=a.M2_2026||0, bv=b.M2_2026||0;
     if(av===0&&bv===0)return 0;
     if(av===0)return 1;

@@ -39,8 +39,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;ba
 .pill.on{background:#E1F5EE;border-color:#1D9E75;color:#085041;font-weight:600}
 .form-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:14px;border-top:1px solid #F0F0F0}
 .btn-cancel{padding:7px 16px;font-size:13px;border-radius:8px;border:1px solid #DDE3EC;background:#fff;color:#666;cursor:pointer}
-.tabs{display:flex;border-bottom:2px solid #DDE3EC;margin-bottom:16px}
-.tab{padding:9px 18px;font-size:13px;font-weight:500;color:#888;cursor:pointer;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;background:none;font-family:inherit}
+.tabs{display:flex;border-bottom:2px solid #DDE3EC;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:9px 18px;font-size:13px;font-weight:500;color:#888;cursor:pointer;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;background:none;font-family:inherit;white-space:nowrap;flex-shrink:0}
 .tab.active{color:#0D2B55;border-bottom-color:#0D2B55}
 .sec{display:none}.sec.active{display:block}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}

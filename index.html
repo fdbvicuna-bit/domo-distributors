@@ -779,28 +779,6 @@ function renderGroup(){
   }
   makeLegend('legend-m2',dataM2,totalM2);
   makeLegend('legend-usd',dataUSD,totalUSD);
-
-  // Comparison table
-  var brands=[
-    {name:'TenCate (Domo+GF+WB)',color:TC_COLOR,d:tc},
-    {name:'Limonta',color:LIM_COLOR,d:lim}
-  ];
-  document.getElementById('grp-tbody').innerHTML=brands.map(function(b){
-    var d=b.d;
-    return'<tr>'+
-      '<td><span style="display:inline-flex;align-items:center;gap:6px">'+
-      '<span style="width:10px;height:10px;border-radius:50%;background:'+b.color+';display:inline-block"></span>'+
-      '<b>'+b.name+'</b></span></td>'+
-      '<td>'+fmt(d.m2_24)+'</td>'+
-      '<td>'+fmt(d.m2_25)+'</td>'+
-      '<td><b>'+fmt(d.m2_26)+'</b></td>'+
-      '<td style="'+pctStyle(d.m2_26,d.m2_25)+'">'+pctStr(d.m2_26,d.m2_25)+'</td>'+
-      '<td>'+fmtUSD(d.usd_24)+'</td>'+
-      '<td>'+fmtUSD(d.usd_25)+'</td>'+
-      '<td><b>'+fmtUSD(d.usd_26)+'</b></td>'+
-      '<td style="'+pctStyle(d.usd_26,d.usd_25)+'">'+pctStr(d.usd_26,d.usd_25)+'</td>'+
-      '</tr>';
-  }).join('');
 }
 
 function parseFactoryCSV(csv){
